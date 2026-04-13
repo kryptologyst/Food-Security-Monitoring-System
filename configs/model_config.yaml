@@ -1,0 +1,67 @@
+# Model configuration
+models:
+  # Baseline models
+  logistic_regression:
+    C: 1.0
+    max_iter: 1000
+    random_state: 42
+  
+  random_forest:
+    n_estimators: 100
+    max_depth: 10
+    min_samples_split: 5
+    min_samples_leaf: 2
+    random_state: 42
+  
+  # Advanced models
+  xgboost:
+    n_estimators: 200
+    max_depth: 6
+    learning_rate: 0.1
+    subsample: 0.8
+    colsample_bytree: 0.8
+    random_state: 42
+  
+  lightgbm:
+    n_estimators: 200
+    max_depth: 6
+    learning_rate: 0.1
+    subsample: 0.8
+    colsample_bytree: 0.8
+    random_state: 42
+  
+  # Neural network
+  neural_network:
+    hidden_layers: [64, 32]
+    dropout_rate: 0.2
+    learning_rate: 0.001
+    batch_size: 32
+    epochs: 100
+    early_stopping_patience: 10
+    random_state: 42
+
+# Training configuration
+training:
+  test_size: 0.2
+  validation_size: 0.2
+  random_state: 42
+  stratify: true
+  
+# Evaluation configuration
+evaluation:
+  metrics:
+    - accuracy
+    - precision
+    - recall
+    - f1_score
+    - roc_auc
+    - average_precision
+    - brier_score
+  
+  # Cross-validation
+  cv_folds: 5
+  cv_strategy: "stratified"
+  
+  # Threshold optimization
+  threshold_optimization: true
+  threshold_metric: "f1_score"

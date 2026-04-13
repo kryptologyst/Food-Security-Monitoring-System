@@ -1,0 +1,48 @@
+# Geographic configuration
+geographic:
+  # Coordinate Reference System
+  default_crs: "EPSG:4326"
+  projected_crs: "EPSG:3857"  # Web Mercator for web mapping
+  
+  # Coordinate ranges for data generation
+  lat_range: [10, 50]
+  lon_range: [-120, -70]
+  crs: "EPSG:4326"
+  
+  # Map settings
+  map:
+    center_lat: 30.0
+    center_lon: -95.0
+    zoom_level: 4
+    tile_layer: "OpenStreetMap"
+    
+  # Visualization
+  visualization:
+    # Color schemes
+    food_secure_color: "#2E8B57"  # Sea Green
+    food_insecure_color: "#DC143C"  # Crimson
+    uncertainty_color: "#FFD700"  # Gold
+    
+    # Map styling
+    marker_size: 8
+    marker_opacity: 0.7
+    line_width: 2
+    
+    # Choropleth settings
+    choropleth_colors: ["#2E8B57", "#FFD700", "#DC143C"]
+    choropleth_n_bins: 5
+    
+  # Regional boundaries (example regions)
+  regions:
+    - name: "North America"
+      bounds: [[15, -180], [85, -50]]
+    - name: "Central America"
+      bounds: [[7, -120], [25, -80]]
+    - name: "South America"
+      bounds: [[-60, -90], [15, -30]]
+    - name: "Africa"
+      bounds: [[-35, -20], [40, 60]]
+    - name: "Asia"
+      bounds: [[-10, 60], [80, 180]]
+    - name: "Europe"
+      bounds: [[35, -25], [75, 45]]

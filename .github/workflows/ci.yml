@@ -1,0 +1,154 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black ruff pytest
+    
+    - name: Run black formatter check
+      run: black --check .
+    
+    - name: Run ruff linter
+      run: ruff check .
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11']
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run tests
+      run: pytest tests/ -v --tb=short
+    
+    - name: Test data generation
+      run: python -c "
+        import sys
+        sys.path.append('src')
+        from src.data.pipeline import FoodSecurityDataGenerator, set_seed
+        import yaml
+        from omegaconf import OmegaConf
+        
+        # Load config
+        data_config = OmegaConf.load('configs/data_config.yaml')
+        model_config = OmegaConf.load('configs/model_config.yaml')
+        geo_config = OmegaConf.load('configs/geo_config.yaml')
+        config = OmegaConf.merge(data_config, model_config, geo_config)
+        
+        # Generate small dataset
+        set_seed(42)
+        generator = FoodSecurityDataGenerator(config)
+        features_df, geo_df = generator.generate_dataset(100)
+        
+        print(f'Generated {len(features_df)} samples')
+        print(f'Food insecurity rate: {features_df[\"food_insecure\"].mean():.3f}')
+      "
+    
+    - name: Test model training
+      run: python -c "
+        import sys
+        sys.path.append('src')
+        from src.data.pipeline import FoodSecurityDataGenerator, DataProcessor, set_seed
+        from src.models.trainer import create_model
+        import yaml
+        from omegaconf import OmegaConf
+        
+        # Load config
+        data_config = OmegaConf.load('configs/data_config.yaml')
+        model_config = OmegaConf.load('configs/model_config.yaml')
+        geo_config = OmegaConf.load('configs/geo_config.yaml')
+        config = OmegaConf.merge(data_config, model_config, geo_config)
+        
+        # Generate and process data
+        set_seed(42)
+        generator = FoodSecurityDataGenerator(config)
+        features_df, geo_df = generator.generate_dataset(100)
+        
+        processor = DataProcessor(config)
+        X, y = processor.prepare_features(features_df)
+        X_train, X_val, X_test, y_train, y_val, y_test = processor.split_data(X, y)
+        X_train_scaled, X_val_scaled, X_test_scaled = processor.scale_features(
+            X_train, X_val, X_test
+        )
+        
+        # Train model
+        model = create_model('logistic_regression', config)
+        model.fit(X_train_scaled, y_train)
+        
+        # Test predictions
+        predictions = model.predict(X_test_scaled)
+        print(f'Model trained successfully, accuracy: {(predictions == y_test).mean():.3f}')
+      "
+
+  demo-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Test Streamlit demo syntax
+      run: python -c "
+        import streamlit as st
+        import sys
+        sys.path.append('src')
+        
+        # Test imports
+        from src.data.pipeline import FoodSecurityDataGenerator, DataProcessor, set_seed
+        from src.models.trainer import create_model
+        from src.viz.plots import FoodSecurityVisualizer
+        
+        print('All imports successful')
+      "
+    
+    - name: Test configuration loading
+      run: python -c "
+        from omegaconf import OmegaConf
+        
+        # Test config loading
+        data_config = OmegaConf.load('configs/data_config.yaml')
+        model_config = OmegaConf.load('configs/model_config.yaml')
+        geo_config = OmegaConf.load('configs/geo_config.yaml')
+        
+        print('Configuration files loaded successfully')
+        print(f'Data config keys: {list(data_config.keys())}')
+        print(f'Model config keys: {list(model_config.keys())}')
+        print(f'Geo config keys: {list(geo_config.keys())}')
+      "

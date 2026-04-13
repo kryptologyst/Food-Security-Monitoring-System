@@ -1,0 +1,61 @@
+# Data configuration
+data:
+  # Dataset parameters
+  n_samples: 10000
+  n_regions: 100
+  time_periods: 24  # months
+  
+  # Feature distributions
+  features:
+    crop_yield:
+      mean: 2.5
+      std: 0.8
+      min: 0.5
+      max: 5.0
+    rainfall:
+      mean: 100
+      std: 30
+      min: 20
+      max: 300
+    market_access_score:
+      min: 0.0
+      max: 1.0
+    poverty_rate:
+      mean: 0.3
+      std: 0.1
+      min: 0.05
+      max: 0.8
+    food_price_index:
+      mean: 120
+      std: 20
+      min: 80
+      max: 200
+    population_density:
+      mean: 150
+      std: 100
+      min: 10
+      max: 1000
+    conflict_index:
+      mean: 0.2
+      std: 0.15
+      min: 0.0
+      max: 1.0
+    infrastructure_score:
+      mean: 0.6
+      std: 0.2
+      min: 0.1
+      max: 1.0
+  
+  # Food security thresholds
+  thresholds:
+    crop_yield_min: 2.0
+    poverty_rate_max: 0.35
+    market_access_min: 0.4
+    rainfall_min: 50
+    food_price_max: 150
+  
+  # Geographic parameters
+  geographic:
+    lat_range: [10, 50]  # degrees
+    lon_range: [-120, -70]  # degrees
+    crs: "EPSG:4326"
